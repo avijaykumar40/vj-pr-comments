@@ -1,13 +1,18 @@
-name: 'Wait'
-description: 'Wait a designated number of milliseconds'
+name: 'vj-pr-comments'
+description: 'Add PR Changes as comment'
 inputs:
-  milliseconds:  # id of input
-    description: 'number of milliseconds to wait'
+  owner:  # owner of the repo
+    description: 'The owner of the repository (user of org)'
     required: true
-    default: '1000'
-outputs:
-  time: # output will be available to future steps
-    description: 'The current time after waiting'
+  repo:
+    description: 'The repositiry name'
+    required: true
+  pr_number:
+    description: 'The number of the pull request'
+    required: true
+  token:
+    description: 'The token to use access the Github APIs'
+    required: true
 runs:
   using: 'node16'
   main: 'dist/index.js'
