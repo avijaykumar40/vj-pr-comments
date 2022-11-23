@@ -17,7 +17,7 @@ async function run() {
     });
 
     let diffData = {
-      addition: 0,
+      additions: 0,
       deletions: 0,
       changes: 0
     };
