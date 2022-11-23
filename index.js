@@ -29,7 +29,7 @@ async function run() {
       acc.deletions += file.deletions;
       acc.changes += file.changes;
       return acc;
-    },diffData)
+    },diffData);
 
     await octokit.rest.issues.createcomment({
       owner,
