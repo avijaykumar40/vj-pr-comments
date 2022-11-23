@@ -1,73 +1,71 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
 
-
-// most @actions toolkit packages have async methods
 async function run() {
   try {
-    const owner = core.getInput('owner');
-    const repo = core.getInput('repo');
-    const pr_number = core.getInput('pr_number');
-    const token = core.getInput('token');
+    const owner = core.getInput('owner', { required: true });
+    const repo = core.getInput('repo', { required: true });
+    const pr_number = core.getInput('pr_number', { required: true });
+    const token = core.getInput('token', { required: true });
 
     const octokit = new github.getOctokit(token);
 
-    const { data: changedFiles } = octokit.rest.pulls.listFiles({
+    const { data: changedFiles } = await octokit.rest.pulls.listFiles({
       owner,
       repo,
-      pr_number
+      pull_number: pr_number,
     });
 
     let diffData = {
-      addition: 0,
+      additions: 0,
       deletions: 0,
       changes: 0
-    }
+    };
 
-    diffData = changedFiles.reduce((acc,file) => {
-      acc.addition += file.addition;
+    diffData = changedFiles.reduce((acc, file) => {
+      acc.additions += file.additions;
       acc.deletions += file.deletions;
       acc.changes += file.changes;
       return acc;
-    },diffData);
+    }, diffData);
 
-    await octokit.rest.issues.createcomment({
+    await octokit.rest.issues.createComment({
       owner,
       repo,
       issue_number: pr_number,
       body: `
-        Pull request #${pr_number} has be updated with : \n
-        - #${diffData.changes} changes \n
-        - #${diffData.addition} addition \n
-        - #${diffData.deletions} deletions
+        Pull request #${pr_number} has be updated with: \n
+        - ${diffData.changes} changes \n
+        - ${diffData.additions} additions \n
+        - ${diffData.deletions} deletions
       `
     });
 
-    for(const file of changedFiles){
-      //readme.md
-      //['readme','md']
-      const fileExtension = file.filename.split('.').pop()
-      let label = ''
-      switch(fileExtension){
+    for (const file of changedFiles) {
+      const fileExtention = file.filename.split('.').pop();
+      let label = '';
+      switch(fileExtention) {
         case 'md':
-          label = 'markdown'
+          label = 'markdown';
           break;
         case 'js':
-          label = 'Javascript'
+          label = 'javascript';
           break;
         case 'yml':
-          label = 'YAML'
+          label = 'yaml';
+          break;
+        case 'yaml':
+          label = 'yaml';
           break;
         default:
-          label = 'noextension'
-          break;
+          label = 'noextension';
       }
-      await octokit.rest.issues.addLabel({
+      await octokit.rest.issues.addLabels({
         owner,
         repo,
         issue_number: pr_number,
         labels: [label]
-      })
+      });
     }
   } catch (error) {
     core.setFailed(error.message);
